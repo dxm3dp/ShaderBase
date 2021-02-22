@@ -39,18 +39,25 @@
 
     half4 frag(v2f i) : SV_TARGET
     {
-        // 计算由uv点指向中点的向量
+        // 计算由uv点指向中点的向量（向外扩，反过来就是向里缩）
         half2 dv = half2(0.5, 0.5) - i.uv;
         // 根据屏幕长宽比对dv进行缩放
         dv = dv * half2(_ScreenParams.x / _ScreenParams.y, 1);
         // 计算像素点到中点的距离
         half dis = sqrt(dv.x * dv.x + dv.y * dv.y);
-        // 
+        // 使用sin函数计算波形的偏移值因数
+        // dis在这里都是小于1的，所以我们需要乘以一个比较大的数，这样就有多个波峰波谷
+        // sin函数的值域是（-1，1），我们希望偏移值很小，所以这里缩小100倍
         half _distanceFactor = 2.0;
         half _totalFactor = 10.0;
         half _waveWidth = 0.25;
         half _curWaveDis = _WaveStrength;
         half sinFactor = sin(dis * _distanceFactor) * _totalFactor * 0.01;
+        // 
+        half discardFactor = clamp(_waveWidth - abs(_curWaveDis - dis), 0, 1);
+        half2 dv1 = normalize(dv);
+        // 计算每个像素uv的偏移值
+        half2 offset = dv1 * sinFactor * discardFactor;
 
         // 模糊处理
         half4 color = 0;

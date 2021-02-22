@@ -75,7 +75,10 @@
         #endif
 
         #if _VIGNETTE_INTENSITY
-            
+            half2 coords = (i.uv - 0.5) * 2.0;
+            half coordDot = dot(coords, coords);
+            half mask = 1.0 - coordDot * _VignetteIntensity * 0.1;
+            color = color * mask; 
         #endif
 
         return color;

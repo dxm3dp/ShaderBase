@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 [ExecuteInEditMode]
 [RequireComponent(typeof(Camera))]
@@ -295,6 +296,17 @@ public sealed class PostEffect : MonoBehaviour
         camera = GetComponent<Camera>();
     }
 
+    void OnEnable()
+    {
+        CheckEnabled();
+        if(enabled)
+        {
+            SetupResource();
+            rebuildResource = false;
+            CheckEnabled();
+        }
+    }
+
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         if(!enableBloom && !enableSaturation && !enableColorCurve
@@ -475,6 +487,131 @@ public sealed class PostEffect : MonoBehaviour
     {
         enabled = EnableBloom || EnableColorCurve || EnableSaturation
             || EnableVignette || EnableBlur;
+    }
+
+    public void DoBlurSpread(float endValue, float duration)
+    {
+        DOTween.To(
+            () => blurSpread,
+            v =>
+            {
+                blurSpread = v;
+            },
+            endValue,
+            duration
+        );
+    }
+
+    public void DoWave(float endValue, float duration)
+    {
+        DOTween.To(
+            () => waveStrength,
+            v =>
+            {
+                waveStrength = v;
+            },
+            endValue,
+            duration
+        );
+    }
+
+    public void DoVignette(float endValue, float duration)
+    {
+        DOTween.To(
+            () => vignetteIntensity,
+            v =>
+            {
+                vignetteIntensity = v;
+            },
+            endValue,
+            duration
+        );
+    }
+
+    public void DoBloom(float endValue, float duration)
+    {
+        EnableBloom = true;
+        Sequence quence = DOTween.Sequence();
+        quence.Append(
+            DOTween.To(
+                () => bloomThreshold,
+                v =>
+                {
+                    bloomThreshold = v;
+                },
+                endValue,
+                duration
+            )
+        );
+    }
+
+    public void DoSaturation(float endValue, float duration)
+    {
+        EnableSaturation = true;
+        Sequence quence = DOTween.Sequence();
+        quence.Append(
+            DOTween.To(
+                () => saturation,
+                v =>
+                {
+                    saturation = v;
+                },
+                endValue,
+                duration
+            )
+        );
+    }
+
+    public void DoDreaming(float blurSpread, float duration01, float wave, float duration02)
+    {
+        EnableBlur = true;
+        Sequence quence01 = DOTween.Sequence();
+        quence01.Append(
+            DOTween.To(
+                () => blurSpread,
+                v =>
+                {
+                    blurSpread = v;
+                },
+                blurSpread,
+                duration01
+            )
+        );
+        quence01.AppendInterval(0.5f);
+        quence01.Append(
+            DOTween.To(
+                () => blurSpread,
+                v =>
+                {
+                    blurSpread = v;
+                },
+                0,
+                duration01
+            )
+        );
+        Sequence quence02 = DOTween.Sequence();
+        quence02.Append(
+            DOTween.To(
+                () => waveStrength,
+                vignetteIntensity =>
+                {
+                },
+                wave,
+                duration02
+            )
+        );
+        quence02.AppendInterval(0.5f);
+        quence02.Append(
+            DOTween.To(
+                () => waveStrength,
+                v =>
+                {
+                    waveStrength = v;
+                },
+                0,
+                duration02
+            )
+        );
     }
 
     enum BloomBlendMode

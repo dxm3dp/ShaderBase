@@ -12,7 +12,7 @@
     struct v2f
     {
         float4 pos : SV_POSITION;
-        float2 uv : TEXCOORD0;
+        half2 uv : TEXCOORD0;
     };
 
     sampler2D _MainTex;
@@ -22,7 +22,7 @@
     {
         v2f o;
         o.pos = UnityObjectToClipPos(v.vertex);
-        o.uv = v.texcoord.xy;
+        o.uv = v.texcoord;
         return o;
     }
 

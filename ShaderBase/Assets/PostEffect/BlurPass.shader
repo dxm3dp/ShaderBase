@@ -27,7 +27,7 @@
     {
         v2f o;
         o.pos = UnityObjectToClipPos(v.vertex);
-        o.uv.xy = v.texcoord.xy;
+        o.uv = v.texcoord;
         o.uv01 = v.texcoord.xyxy + _Offsets.xyxy * half4(1, 1, -1, -1);
         o.uv23 = v.texcoord.xyxy + _Offsets.xyxy * half4(1, 1, -1, -1) * 2.0;
         o.uv45 = v.texcoord.xyxy + _Offsets.xyxy * half4(1, 1, -1, -1) * 3.0;
