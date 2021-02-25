@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using DG.Tweening;
 
 [ExecuteInEditMode]
@@ -16,77 +14,76 @@ public sealed class PostEffect : MonoBehaviour
     static int vignetteIntensityID = -1;
     static int waveStengthID = -1;
 
-    [Tooltip("The shader for down sample")]
+    [SerializeField]
     Shader downSampleShader;
 
-    [Tooltip("The shader for brightPass")]
+    [SerializeField]
     Shader brightPassShader;
 
-    [Tooltip("The shader for blur pass")]
+    [SerializeField]
     Shader blurPassShader;
 
-    [Tooltip("The shader for combine pass")]
-    Shader combinePassShader;
-
-    [Tooltip("The shader for wave pass")]
+    [SerializeField]
     Shader wavePassShader;
 
+    [SerializeField]
+    Shader combinePassShader;
 
-    [Tooltip("whether to enable the bloom")]
+    [SerializeField]
     bool enableBloom;
 
-    [Tooltip("The bloom blend mode")]
+    [SerializeField]
     BloomBlendMode bloomBlendMode = BloomBlendMode.Add;
 
-    [Tooltip("The bloom intensity")]
+    [SerializeField]
     float bloomIntensity = 0.5f;
 
-    [Tooltip("The bloom threshold")]
+    [SerializeField]
     [Range(-0.05f, 4f)]
     float bloomThreshold = 0.5f;
 
-    [Tooltip("The bloom threshold color")]
-    Color bloomThresoldColor = Color.white;
+    [SerializeField]
+    Color bloomThresholdColor = Color.white;
 
-    [Tooltip("The bloom blur spread")]
+    [SerializeField]
     float bloomBlurSpread = 2.5f;
 
-    [Tooltip("Whether to enable saturation control")]
+    [SerializeField]
     bool enableColorCurve;
 
-    [Tooltip("The color correction curve for red channel")]
+    [SerializeField]
     AnimationCurve redChannelCurve =
         new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 1f));
 
-    [Tooltip("The color correction curve for green channel")]
+    [SerializeField]
     AnimationCurve greenChannelCurve =
         new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 1f));
 
-    [Tooltip("The color correction curve for blue channel")]
+    [SerializeField]
     AnimationCurve blueChannelCurve =
         new AnimationCurve(new Keyframe(0f, 0f), new Keyframe(1f, 1f));
 
-    [Tooltip("Whether to enable saturation control")]
+    [SerializeField]
     bool enableSaturation;
 
-    [Tooltip("The saturation for the image")]
+    [SerializeField]
     [Range(0f, 5f)]
     float saturation = 1f;
 
-    [Tooltip("Whether to enable vignette")]
+    [SerializeField]
     bool enableVignette;
 
-    [Tooltip("The intensity for vignette")]
+    [SerializeField]
     float vignetteIntensity = 0.375f;
 
-    [Tooltip("Whether to enable blur the screen")]
+    [SerializeField]
     bool enableBlur;
 
-    [Tooltip("The blur spread")]
+    [SerializeField]
     [Range(0f, 10f)]
     float blurSpread = 2.5f;
 
-    [Tooltip("The wave strength")]
+    [SerializeField]
     [Range(0f, 1f)]
     float waveStrength = 0.02f;
 
@@ -298,12 +295,49 @@ public sealed class PostEffect : MonoBehaviour
 
     void OnEnable()
     {
-        CheckEnabled();
+        CheckSupport();
         if(enabled)
         {
             SetupResource();
             rebuildResource = false;
             CheckEnabled();
+        }
+    }
+
+    void CheckSupport()
+    {
+        if(combinePassShader == null || !combinePassShader.isSupported)
+        {
+            Debug.LogWarning("Does not support the combine pass shader.");
+            enabled = false;
+            return;
+        }
+
+        if(enableBloom)
+        {
+            if(downSampleShader == null || !downSampleShader.isSupported)
+            {
+                Debug.LogWarning("Does not support the down sample shader, turn off the bloom");
+                enableBloom = false;
+            }
+        }
+
+        if(enableBloom)
+        {
+            if(brightPassShader == null || !brightPassShader.isSupported)
+            {
+                Debug.LogWarning("Does not support the bright pass shader, turn off the bloom");
+                enableBloom = false;
+            }
+        }
+
+        if(enableBloom)
+        {
+            if(blurPassShader == null || !blurPassShader.isSupported)
+            {
+                Debug.LogWarning("Does not support the blur pass shader, turn off the bloom");
+                enableBloom = false;
+            }
         }
     }
 
@@ -346,7 +380,7 @@ public sealed class PostEffect : MonoBehaviour
 
             // cut colors 
             var secondQuarterRezColor = RenderTexture.GetTemporary(rtW4, rtH4, 0, rtFormat);
-            var threshColor = bloomThreshold * bloomThresoldColor;
+            var threshColor = bloomThreshold * bloomThresholdColor;
             brightPassMaterial.SetVector(ThreshholdID, threshColor);
             Graphics.Blit(quarterRezColor, secondQuarterRezColor, brightPassMaterial, 0);
             RenderTexture.ReleaseTemporary(quarterRezColor);
@@ -369,9 +403,77 @@ public sealed class PostEffect : MonoBehaviour
             combinePassMaterial.SetTexture(BloomTexID, blur4);
             combinePassMaterial.SetFloat(BloomIntensityID, bloomIntensity);
         }
+
+        if(enableSaturation)
+        {
+            combinePassMaterial.SetFloat(SaturationID, saturation);
+        }
+
+        if(enableColorCurve)
+        {
+            combinePassMaterial.SetTexture(CurveTexID, curveTex);
+        }
+
+        if(enableVignette)
+        {
+            combinePassMaterial.SetFloat(VignetteIntensityID, vignetteIntensity);
+        }
+
+        if(enableBloom || enableSaturation || enableColorCurve || enableVignette)
+        {
+            if(enableBlur)
+            {
+                var temp1 = RenderTexture.GetTemporary(
+                    source.width, source.height, 0, RenderTextureFormat.Default);
+                var temp2 = RenderTexture.GetTemporary(
+                    source.width, source.height, 0, RenderTextureFormat.Default);
+                Graphics.Blit(source, temp1, combinePassMaterial, 0);
+
+                float widthOverHeight = (1f * source.width) / (1f * source.height);
+                float oneOverBaseSize = 1f / 512f;
+
+                var offset = new Vector4(0f, blurSpread * oneOverBaseSize, 0f, 0f);
+                blurPassMaterial.SetVector(OffsetsID, offset);
+                Graphics.Blit(temp1, temp2, blurPassMaterial, 0);
+
+                offset = new Vector4((blurSpread / widthOverHeight) * oneOverBaseSize, 0f, 0f, 0f);
+                wavePassMaterial.SetVector(OffsetsID, offset);
+                wavePassMaterial.SetVector(WaveStrengthID, new Vector4(waveStrength, waveStrength));
+                Graphics.Blit(temp2, destination, wavePassMaterial, 0);
+
+                RenderTexture.ReleaseTemporary(temp1);
+                RenderTexture.ReleaseTemporary(temp2);
+            }
+            else
+            {
+                Graphics.Blit(source, destination, combinePassMaterial, 0);
+            }
+        }
         else
         {
+            var temp = RenderTexture.GetTemporary(
+                            source.width, source.height, 0, RenderTextureFormat.Default);
 
+            float widthOverHeight = (1f * source.width) / (1f * source.height);
+            float oneOverBaseSize = 1f / 512f;
+
+            // vertical blur
+            var offset = new Vector4(0.0f, this.blurSpread * oneOverBaseSize, 0.0f, 0.0f);
+            this.blurPassMaterial.SetVector(OffsetsID, offset);
+            Graphics.Blit(source, temp, this.blurPassMaterial, 0);
+
+            // horizontal blur
+            offset = new Vector4((this.blurSpread / widthOverHeight) * oneOverBaseSize, 0.0f, 0.0f, 0.0f);
+            this.wavePassMaterial.SetVector(OffsetsID, offset);
+            this.wavePassMaterial.SetVector(WaveStrengthID, new Vector4(this.waveStrength, this.waveStrength));
+            Graphics.Blit(temp, destination, this.wavePassMaterial, 0);
+
+            RenderTexture.ReleaseTemporary(temp);
+        }
+
+        if(blur4 != null)
+        {
+            RenderTexture.ReleaseTemporary(blur4);
         }
     }
 

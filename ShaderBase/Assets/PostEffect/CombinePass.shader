@@ -66,7 +66,7 @@
             fixed3 red = tex2D(_CurveTex, half2(color.r, 0.5 / 4.0)).rgb * fixed3(1, 0, 0);
             fixed3 green = tex2D(_CurveTex, half2(color.g, 1.5 / 4.0)).rgb * fixed3(0, 1, 0);
             fixed3 blue = tex2D(_CurveTex, half2(color.b, 2.5 / 4.0)).rgb * fixed3(0, 0, 1);
-            color = red + green + blue;
+            color.rgb = red + green + blue;
         #endif
 
         #if _SATURATION
