@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using DG.Tweening;
 
-[ExecuteInEditMode]
+[ExecuteInEditMode, ImageEffectAllowedInSceneView]
 [RequireComponent(typeof(Camera))]
 public sealed class PostEffect : MonoBehaviour
 {
-    static int threshholdID = -1;
+    static int thresholdID = -1;
     static int offsetsID = -1;
     static int bloomTexID = -1;
     static int bloomIntensityID = -1;
@@ -120,15 +120,15 @@ public sealed class PostEffect : MonoBehaviour
             return bloomIntensityID;
         }
     }
-    static int ThreshholdID
+    static int ThresholdID
     {
         get
         {
-            if(threshholdID == -1)
+            if(thresholdID == -1)
             {
-                threshholdID = Shader.PropertyToID("_Threshhold");
+                thresholdID = Shader.PropertyToID("_Threshold");
             }
-            return threshholdID;
+            return thresholdID;
         }
     }
     static int WaveStrengthID
@@ -381,7 +381,7 @@ public sealed class PostEffect : MonoBehaviour
             // cut colors 
             var secondQuarterRezColor = RenderTexture.GetTemporary(rtW4, rtH4, 0, rtFormat);
             var threshColor = bloomThreshold * bloomThresholdColor;
-            brightPassMaterial.SetVector(ThreshholdID, threshColor);
+            brightPassMaterial.SetVector(ThresholdID, threshColor);
             Graphics.Blit(quarterRezColor, secondQuarterRezColor, brightPassMaterial, 0);
             RenderTexture.ReleaseTemporary(quarterRezColor);
 

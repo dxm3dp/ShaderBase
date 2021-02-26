@@ -16,7 +16,7 @@
     };
 
     sampler2D _MainTex;
-    half4 _Threshhold;
+    half4 _Threshold;
 
     v2f vert(appdata_img v)
     {
@@ -29,7 +29,7 @@
     half4 frag(v2f i) : SV_TARGET
     {
         half4 color = tex2D(_MainTex, i.uv);
-        color.rgb = max(half3(0, 0, 0), color.rgb - _Threshhold.rgb);
+        color.rgb = max(half3(0, 0, 0), color.rgb - _Threshold.rgb);
         return color;
     }
 
