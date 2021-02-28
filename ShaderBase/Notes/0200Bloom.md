@@ -43,3 +43,19 @@ To improve out blurring, we have to switch to a more advanced filter kernel than
 ## Box Sampling
 
 We're going to adjust our shader so it uses a different sampling method that bilinear filtering. Because sampling depends on the pixel size, add the magic float4 `_MainTex_TexelSize` variable to the `CGINCLUDE` block. Keep in mind that this corresponds to the texel size of the source texture, not the destination.
+
+Instead of relying on a bilinear filter only, we'll use a simple box filter kernel instead. It takes four samples instead of one, diagonally positioned so we get the averages of four adjacent 2*2 pixels blocks. Sum these samples and divide by four, so we end up with the average of a 4*4 pixel block, doubling our kernel size.
+
+## Different Passes
+
+The result is much smoother and has much higher quality, but it is also much blurrier. This is mostly due to upsampling with the new 4*4 box filter. As we're using the source's texel size to position the sample points, we end up covering a large area, with an unfocused regular weight distribution. 
+
+We can tune our box filter by adjust the UV delta that we use to select the sample points. To make this possible, turn the delta into a parameter, instead of always using 1.
+
+## Creating Bloom
+
+Blurring the original image is the first step of creating a bloom effect. The second step is to combine the blurred image with the original, brightening it. However, we won't just use the final blurred result, as that would produce a rather uniform smudging. Instead, lower amounts of blurring should contribute more to the result that higher amounts of blurring. We can do this by accumulating the intermediate results, adding to the old data as we upsample. 
+
+### Additive Blending
+
+Adding to what we already have at some intermediate level can be done by using additive blending, instead of replacing the texture's contents. All we have to do is set the blend mode of the upsampling pass to one one.
