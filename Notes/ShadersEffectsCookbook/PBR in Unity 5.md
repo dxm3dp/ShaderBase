@@ -24,5 +24,47 @@ Metals are known for the conducting of electricity ; light is in the form of ele
 
 In the Standard Shader , purely metallic materials have dark diffuse components and the color of their specular reflections is determined by the **Albedo** map . Conversely , the diffuse component of purely non-metallic materials is determined by the **Albedo** map ; the color of their specular highlights is determined by the color of the incoming light . Following these principles allows the metallic workflow to combine the albedo and specular into the **Albedo** map , enforcing physically-accurate behaviors . This also allows saving more space , resulting in a significant speed up at the expenses of reduced control over the look of your materials .
 
+## Adding transparency to PBR
+
+Transparency is such an important aspect in games that the Standard Shader supports three different ways of doing it . This recipe is useful if you need to have realistic materials with transparent or semi-transparent properties . Glasses , bottles , windows , and crystals are good condidates for PBR transparent shaders . This is because you can still have all the realism introduced by PBR with the addition of a tranparent or translucent effect . If you need transparency for something different such as UI elements or pixel art , there are more efficient alternatives that are explored in the *Creating a transparent material recipe in Chapter 2 , Surface Shaders and Texture Mapping* .
+
+### How to do it ...
+
+The Standard Shader provides three different types of transparencies . Despite being very similar , they have subtle differences and fit different contexts .
+
+#### Semi-transparent materials
+
+Some materials such as clear plastics , crystal , and glass are semi-transparent . This means that they both require all the realistic effects of PBR (such as specular highlights and Fresnel refraction and reflection) but allow the geometry behind to be seen . If this is what you need , perform the following steps :
+
+1. From the material's Inspector tab , set **Rendering Mode** to **Transparent** .
+2. The amount of transparency is determined by the alpha channel of the **Albedo** color or the **Albedo** map (if any).
+
+The following picture shows the Unity 5 calibration scene with four different highly polished plastic spheres . From left to right , their transparency is increased . The last sphere is fully transparent , but retains all the added effects of PBR :
+
+![transparency](Asset/00.jpg)
+
+The **Transparent** rendering mode is perfect for windows , bottles , gems , and headsets .
+
+#### Note
+
+You should notice that many transparent materials don't usually project shadows . On top of this , the **Metallic** and **Smoothness** properties of a material can interfere with the transparency effect . A mirror-like surface can have the alpha set to zero , but if it reflects all the incoming light , it won't appear transparent .
+
+#### Fading objects
+
+Sometimes , you want an object to fully disappear with a fading effect . In this case , specular reflections and Fresnel refraction and reflection should disappear as well . When a fading object is fully transparent , it should also be invisible . To do this , perform the following steps :
+
+1. From the material's Inspector tab , set**Rendering Mode** to **Fade** .
+2. As before , use the alpha channel of the **Albedo** color or map to determine the final transparency .
+
+The following picture shows fading spheres . It is clear from the picture that the PBR effects fade with the sphere as well . As you can see in the following image , the last one on the right is almost invisible :
+
+![fade](Asset/01.jpg)
+
+This rendering mode works best for non-realistic objects , such as holograms , laser rays , faux lights , ghosts , and particle effects .
+
+#### Solid geometries with holes
+
+
+
 
 

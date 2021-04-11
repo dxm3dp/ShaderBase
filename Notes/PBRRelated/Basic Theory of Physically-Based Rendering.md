@@ -19,3 +19,14 @@ The absorption and scattering of diffuse light are often quite different for dif
 In some cases diffusion is more complicated - in materials that have wider scattering distances for example , like skin or wax . In these cases a simple color will usually not do , and the shading system must take into account the shape and thickness of the object being lit . If they are thin enough , such objects often see light scattering out the back side and can then be called translucent . If the diffusion is even lower yet (in for example , glass) then almost no scattering is evident at all and entire images can pass through an object from one side to another intact . These behaviours are different enough from the typical "close to the surface" diffusion that unique shaders are usually needed to simulate them .
 
 ## Energy Conservation
+
+With these descriptions we now have enough information to draw an important conclusion , which is that **reflection** and **diffusion** are mutually exclusive . This is because , in order for light to be diffused , light must first penetrate the surface (that is , fail to reflect) . This is known in shading parlance as an example of "energy conservation" , which just means that the light leaving a surface is never any brighter than which fell upon it originally .
+
+This is easy to enforce in a shading system : one simply subtracts reflected light before allowing the diffuse shading to occur . This means highly reflective objects will show little to no diffuse light , simply because little to no light penetrates the surface , having been mostly reflected . The converse is also true : if an object has bright diffusion , it cannot be especially reflective .
+
+![EnergyConservation](./Asset/01EnergyConservation.jpg)
+
+Energy conservation of this sort is an important aspect of physically-based shading . It allows the artist to work with reflectivity and albedo values for a material without accidentally violating the laws of physics (which tends to look bad) . While enforcing these constraints in code isn't strictly necessary to producing good looking art , it does serve a useful role as a kind of "nanny physicist" that will prevent artwork from bending the rules too far or becoming inconsistent under different lighting conditions .
+
+## Metals
+
