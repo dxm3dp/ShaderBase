@@ -30,3 +30,43 @@ Energy conservation of this sort is an important aspect of physically-based shad
 
 ## Metals
 
+Electrically conductive materials , most notably metals, are deserving of special mention at this point for a few reasons .
+
+Firstly , they tend to be mush more reflective than insulators (non-conductors) . Conductors will usually exhibit reflectivities as high as 60% - 90% , whereas insulators are generally much lower , in the 0 - 20% range . These high reflectivities prevent most light from reaching the interior and scattering , giving metals a very "shiny" look .
+
+Secondly , reflectivity on conductors will sometimes very across the visible spectrum , which means that their reflections appear tinted . This coloring of reflection is rare even among conductors , but it does occur in some everyday materials (e.g. gold , copper , and brass ) . Insulators as general rule do not exhibit this effect , and their reflections are uncolored .
+
+Finally , electrical conductors will usually absorb rather than scatter any light that penetrates the surface . This means that in theory conductors will not show any evidence of diffuse light . In practice however there are often oxides or other residues on the surface of a material that will scatter some small amounts of light .
+
+It is this duality between metals and just about evetything else that leads some rendering systems to adopt "metalness" as a direct input . In such systems artists specify the degree to which a material behaves as a metal , rather than specifying only the albedo & reflectivity explicitly . This is sometimes preferred as a simpler means of creating materials , but is not necessarily a characteristic of physically-based rendering .
+
+## Fresnel
+
+**Augustin-Jean Fresnel seems to be one of those old dead white guys we are unlikely to forget , mainly because his name is plastered on a range of phenomena that he was the first to accurately describe . It would be hard to have a discussion on the reflection of light without his name coming up .
+
+In computer graphics the word Fresnel refers to differing reflectivity that occurs at differen angles . Specifically , light that lands on a surface at a grazing angle will be much more likely to reflect than that which hits a surface dead-on . This means that objects renered with a proper Fresnel effect will appear to have brighter reflections near the edges . Most of us have been familiar with this for a while now , and its presence in computer graphics is not new . However , PBR shaders have made popular a few impotrant corrections in the evaluation of Fresnel's equations .
+
+The first is that for all materials , reflectivity becomes total for grazing angles - the "edges" viewed on any smooth object should act as perfect (uncolored) mirrors , no matter the material . Yes , really - any substance can act as a perfect mirror if it is smooth and viewed at the right angle ! This can be counterintuitive , but the physics are clear .
+
+The second observation about Fresnel properties is that the curve or gradient between the angles does not vary much from material to material . Metals are the most divergent , but they too can be accounted for analytically .
+
+What this means for us is that , assuming realism is desired , artist control over Fresnel behavior should generally be reduced , rather than expanded . Or at the very least , we now know where to set our default values !
+
+This is good news of a sort , because it can simplify content generation . The shading system can now handle the Fresnel effect almost entirely on its own ; it has only to consult some of the other pre-existing material properties , such as gloss and reflectivity .
+
+![Fresnel](./Asset/02Fresnel.jpg)
+
+A PBR workflow has the artist specify , by one means or another , a "base reflectivity" . This provides the minimum amount and color of light reflected . The Fresnel effect , once rendered , will add reflectivity on top of the artist specified value , reaching up to 100% (white) at glancing angles . Essentially the content describes the base , and Fresnel's equations take over from there , making the surface more reflective at various angles as needed .
+
+There is one big caveat for the Fresnel effect - it quickly becomes less ecident as surfaces become less smooth . More information on this interaction will be given a bit later on .
+
+## Microsurface
+
+The above descriptions of reflection and diffusion both depend on the orientation of the surface . On a large scale , this is supplied by the shape of the mesh being rendered , which may also make use of a normal map to describe smaller details . With this information any rendering system can go to town , rendering diffusion and reflection quite well .
+
+However , there is one big piece still missing . Most real-world surfaces have very small imperfections : tiny grooves , cracks , and lumps too little for the eye to see , and much too small to represent in a normal map of any sane resolution . Despite being invisible to the naked eye , these microscopic features nonetheless affect the diffusion and reflection of light .
+
+![microsurface](./Asset/03Microsurface.jpg)
+
+Microsurface detail has the most noticeable effect on reflection (subsurface diffusion is not greatly affected and won't be discussed further here) . In the diagram above , you can see parallel lines of incoming light begin to diverge when reflected from a rougher surface , as each ray hits a part of the surface with a different orientation . The analog in the ball/wall analogy would be a cliffside or something similarly uneven : the ball is still going to bounce off but at an unpredictable angle . In short , the rougher the surface gets , the more the reflected light will diverge or appear "blurry" .
+
